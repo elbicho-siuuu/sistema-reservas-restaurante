@@ -11,7 +11,7 @@ La versión de Python está indicada en `.python-version` y el proyecto también
 
 ### Obtener el proyecto
 
-Clona el repositorio o copia la carpeta completa del proyecto. Luego, abre una terminal dentro de la carpeta `Trabajo Eval 1`.
+Clona el repositorio o copia la carpeta completa del proyecto. Luego, abre una terminal dentro de la carpeta `sistema-reservas-restaurante`.
 
 Si utilizas Git, el comando tiene esta forma:
 
