@@ -34,82 +34,24 @@ Sincroniza el entorno del proyecto e instala las dependencias de desarrollo:
 uv sync
 ```
 
-Esto instala las herramientas definidas en el grupo de desarrollo: `pytest`, `ruff` y `pyrefly`.
+### Comandos de Verificación de Calidad
+* **Análisis Estático:** `uv run ruff check`
+* **Verificación de Tipos:** `uv run pyrefly`
+* **Suite de Pruebas:** `uv run pytest`
 
-### Ejecutar el proyecto
+## 📋 Catálogo de Reglas de Negocio
 
-El script configurado en `pyproject.toml` se ejecuta con:
+1. **Regla 1 (Límite de Mesas):** Una reserva no puede incluir más de 3 mesas en total.
+2. **Regla 2 (Capacidad de Aforo):** La cantidad de personas de la reserva no puede superar la capacidad total acumulada de las mesas seleccionadas.
+3. **Regla 3 (Disponibilidad y Superposición):** Una misma mesa no puede estar asignada a dos reservas con horarios superpuestos.
+4. **Regla 4 (Anticipación Mínima):** La reserva debe realizarse con al menos 60 minutos de anticipación respecto a la hora de inicio.
+5. **Regla 5 (Anticipación Máxima):** La reserva no puede realizarse con más de 30 días de anticipación.
+6. **Regla 6 (Unicidad de Mesas):** Una misma mesa física no puede seleccionarse más de una vez dentro de una misma reserva.
 
-```powershell
-uv run trabajo-eval-1
-```
+## 🤖 Uso de IA y Agentes (Enfoque Adversarial)
 
-### Ejecutar las pruebas
-
-```powershell
-uv run pytest
-```
-
-### Revisar la calidad del código
-
-Ejecuta `ruff` sobre el código fuente y las pruebas:
-
-```powershell
-uv run ruff check src tests
-```
-
-Ejecuta `pyrefly` para realizar el análisis estático:
-
-```powershell
-uv run pyrefly check
-```
-
-## Uso de IA o agentes
-
-**Herramientas:** ChatGPT, CodexAI
-
-**Uso:**
-
-* **ChatGPT:** Apoyo para definir el alcance y las reglas de negocio del sistema.
-
-* **ChatGPT:** Apoyo para diseñar la estructura inicial del sistema y sus entidades.
-
-* **ChatGPT:** Apoyo para revisar las pruebas y analizar la cobertura de las reglas de negocio.
-
-* **CodexAI:** Generación de la estructura inicial del proyecto, modelos y pruebas básicas.
-
-* **CodexAI:** Implementación de las reglas de negocio y generación de pruebas específicas.
-
-* **CodexAI:** Verificación mediante `pytest`, `ruff` y `pyrefly`.
-
-**Trabajo realizado por el estudiante:**
-
-* Elección del sistema de reservas de restaurante como proyecto.
-
-* Elección, revisión y modificación de las reglas de negocio propuestas.
-
-* Incorporación de una regla que limita las reservas a un máximo de 30 días de anticipación.
-
-* Decisión sobre la estructura del restaurante, incluyendo pisos y tipos de ubicación de las mesas.
-
-* Revisión de las propuestas y código generado por las herramientas de IA.
-
-* Revisión de las pruebas generadas y de los casos cubiertos por ellas.
-
-* Verificación de los resultados obtenidos mediante las herramientas de calidad.
-
-**Revisiones/correcciones realizadas:**
-
-* Se revisó la estructura generada por CodexAI y se comprobó que las entidades correspondieran al diseño planteado.
-
-* Se identificó que las primeras pruebas generadas comprobaban principalmente que las entidades almacenaran correctamente sus datos, pero no verificaban todavía las reglas de negocio.
-
-* Se mantuvieron las pruebas básicas como base y posteriormente se incorporaron pruebas específicas para las reglas de negocio.
-
-* Se revisó la cobertura de las pruebas y se identificaron escenarios de las reglas de negocio que todavía requieren una revisión adicional.
-
-* Se verificó que `pytest` ejecutara correctamente las pruebas y que `ruff` y `pyrefly` no presentaran errores.
-
-**Error o limitación detectada:**
-
-* Los primeros tests generados por CodexAI no comprobaban las reglas de negocio del sistema, por lo que no eran suficientes para cumplir con el requisito de tener al menos una prueba por cada regla. Se decidió mantenerlos como pruebas básicas y agregar posteriormente pruebas específicas para las reglas de negocio.
+* **Herramientas:** ChatGPT y CodexAI.
+* **Flujo Adversarial Aplicado:**
+  * *Propuesta de IA:* ChatGPT diseñó la prueba inicial para la asignación de mesas aceptando la duplicación del mismo objeto mesa en la lista.
+  * *Auditoría de IA:* CodexAI alertó que esto permitía inflar artificialmente la capacidad total de asientos simulando que una mesa de 4 se convertía en una de 8.
+  * *Arbitraje Humano:* Identifiqué este fallo como un vacío crítico de lógica que rompía el negocio. Rechacé la propuesta automatizada, implementé la restricción de identificación única en `crear_reserva()` para dar origen a la **Regla 6** y escribí el test unitario manual correspondiente.
