@@ -1,25 +1,24 @@
-"""Prueba E2E del flujo principal de reservas usando Playwright."""
-
-from datetime import UTC, datetime, timedelta
 import os
-from pathlib import Path
+import socket
 import subprocess
 import sys
 import time
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
-from playwright.sync_api import APIRequestContext, Playwright
-
-
-BASE_URL = "http://127.0.0.1:8765"
+from playwright.sync_api import APIRequestContext, Error, Playwright
 
 
 @pytest.fixture
 def api(playwright: Playwright):
-    """Levanta FastAPI y devuelve un cliente HTTP externo de Playwright."""
     root = Path(__file__).parents[2]
-    environment = os.environ.copy()
-    environment["PYTHONPATH"] = str(root / "src")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(root / "src")
+
+    with socket.socket() as port_socket:
+        port_socket.bind(("127.0.0.1", 0))
+        port = port_socket.getsockname()[1]
 
     server = subprocess.Popen(
         [
@@ -30,30 +29,64 @@ def api(playwright: Playwright):
             "--host",
             "127.0.0.1",
             "--port",
-            "8765",
+            str(port),
         ],
         cwd=root,
-        env=environment,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
     )
 
-    client = playwright.request.new_context(base_url=BASE_URL)
+    client = None
     try:
-        for _ in range(50):
+        client = playwright.request.new_context(
+            base_url=f"http://127.0.0.1:{port}"
+        )
+        last_connection_error = None
+
+        for _ in range(100):
             if server.poll() is not None:
-                pytest.fail("FastAPI no pudo iniciar.")
-            response = client.get("/mesas")
-            if response.ok:
-                break
+                output = server.communicate(timeout=1)[0]
+                pytest.fail(
+                    "Uvicorn termino antes de estar disponible "
+                    f"(codigo {server.returncode}).\nSalida:\n{output}"
+                )
+
+            try:
+                response = client.get("/mesas", timeout=1000)
+                if response.ok:
+                    break
+            except Error as error:
+                last_connection_error = str(error)
             time.sleep(0.1)
         else:
-            pytest.fail("FastAPI no respondió a tiempo.")
+            if server.poll() is not None:
+                output = server.communicate(timeout=1)[0]
+                pytest.fail(
+                    "Uvicorn termino antes de estar disponible "
+                    f"(codigo {server.returncode}).\nSalida:\n{output}"
+                )
+
+            server.terminate()
+            try:
+                server.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                server.kill()
+                server.wait()
+            output = server.communicate(timeout=1)[0]
+            pytest.fail(
+                "La API no respondio a tiempo.\n"
+                f"Ultimo error de conexion: {last_connection_error}\n"
+                f"Salida de Uvicorn:\n{output}"
+            )
 
         yield client
     finally:
-        client.dispose()
-        server.terminate()
+        if client is not None:
+            client.dispose()
+        if server.poll() is None:
+            server.terminate()
         try:
             server.wait(timeout=5)
         except subprocess.TimeoutExpired:
@@ -61,20 +94,20 @@ def api(playwright: Playwright):
             server.wait()
 
 
-def test_flujo_completo_de_reserva(api: APIRequestContext) -> None:
-    """Consulta mesas, crea una reserva y la encuentra en el listado."""
+def test_flujo_completo_reserva(api: APIRequestContext) -> None:
     mesas_response = api.get("/mesas")
-
     assert mesas_response.ok
+
     mesas = mesas_response.json()
-    assert mesas
+    assert len(mesas) > 0
+
     mesa_id = mesas[0]["identificador"]
 
     inicio = datetime.now(UTC) + timedelta(hours=2)
     termino = inicio + timedelta(hours=2)
-    reserva_id = "E2E-R1"
-    datos_reserva = {
-        "identificador": reserva_id,
+
+    reserva_payload = {
+        "identificador": "E2E-R1",
         "cliente_id": "E2E-C1",
         "cliente_nombre": "Cliente E2E",
         "mesa_ids": [mesa_id],
@@ -83,13 +116,14 @@ def test_flujo_completo_de_reserva(api: APIRequestContext) -> None:
         "termino": termino.isoformat(),
     }
 
-    crear_response = api.post("/reservas", data=datos_reserva)
-
-    assert crear_response.status == 201
-    assert crear_response.json()["identificador"] == reserva_id
+    response = api.post("/reservas", data=reserva_payload)
+    assert response.status == 201
+    reserva = response.json()
+    assert reserva["identificador"] == "E2E-R1"
 
     reservas_response = api.get("/reservas")
-
     assert reservas_response.ok
+
     reservas = reservas_response.json()
-    assert any(reserva["identificador"] == reserva_id for reserva in reservas)
+    assert any(r["identificador"] == "E2E-R1" for r in reservas)
+
