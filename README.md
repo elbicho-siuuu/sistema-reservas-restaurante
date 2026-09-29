@@ -17,7 +17,7 @@ Si utilizas Git, el comando tiene esta forma:
 
 ```powershell
 git clone <https://github.com/elbicho-siuuu/sistema-reservas-restaurante.git>
-cd "sistema-reservas-restaurantes"
+cd "sistema-reservas-restaurante"
 ```
 
 ### Instalar dependencias
