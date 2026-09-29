@@ -16,8 +16,8 @@ Clona el repositorio o copia la carpeta completa del proyecto. Luego, abre una t
 Si utilizas Git, el comando tiene esta forma:
 
 ```powershell
-git clone <URL_DEL_REPOSITORIO>
-cd "Trabajo Eval 1"
+git clone <https://github.com/elbicho-siuuu/sistema-reservas-restaurante.git>
+cd "sistema-reservas-restaurantes"
 ```
 
 ### Instalar dependencias
