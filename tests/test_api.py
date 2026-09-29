@@ -1,5 +1,8 @@
 from datetime import UTC, datetime, timedelta
 
+import pytest
+from fastapi import HTTPException
+
 from trabajo_eval_1.api import (
     RESERVAS,
     ReservaCreateRequest,
@@ -38,6 +41,17 @@ def test_post_reservas_crea_una_reserva_valida() -> None:
 
     assert reserva.identificador == "R1"
     assert reserva.cantidad_personas == 2
+
+
+def test_post_reservas_rechaza_mesa_inexistente_sin_modificar_reservas() -> None:
+    crear_reserva_api(datos_reserva())
+    reservas_antes = list(RESERVAS)
+
+    with pytest.raises(HTTPException) as error:
+        crear_reserva_api(datos_reserva(["M99"]))
+
+    assert error.value.status_code == 404
+    assert RESERVAS == reservas_antes
 
 
 def test_get_reservas_devuelve_las_reservas_creadas() -> None:
