@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  calidad-y-pruebas:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.15"
+
+      - name: Configurar Python
+        run: uv python install 3.14
+
+      - name: Instalar dependencias
+        run: uv sync --dev
+
+      - name: Pyrefly
+        run: uv run pyrefly check
+
+      - name: Ruff
+        run: uv run ruff check .
+
+      - name: Pruebas unitarias
+        run: uv run pytest tests/test_reservas.py tests/test_modelos.py
+
+      - name: Pruebas de integración
+        run: uv run pytest tests/test_api.py
+
+      - name: Pruebas E2E
+        run: uv run pytest tests/e2e/
