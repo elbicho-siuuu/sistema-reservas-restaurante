@@ -93,23 +93,30 @@ Estas validaciones no son reglas de disponibilidad, pero forman parte de la crea
 | `termino < inicio` | Rechazar | `test_rechaza_termino_anterior_al_inicio`. |
 | `termino > inicio` | Aceptar en los casos válidos | Cubierto indirectamente por las pruebas de creación válida. |
 
-## 4. Tabla de decisión para crear una reserva
+## 4. Tabla de Decisión para crear una nueva reserva
 
-La reserva solo se crea cuando todas las condiciones necesarias son verdaderas.
+La siguiente tabla relaciona las principales condiciones que deben cumplirse para crear una reserva con el resultado esperado. Se consideran las condiciones de forma individual para facilitar la trazabilidad de las reglas de negocio.
 
-| Condición                               | T1: caso válido | T2: falla una condición |
+| Condición            | Caso válido                                       | Caso inválido                                           |
+| -------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| Se incluyen mesas    | Al menos 1 mesa                                   | 0 mesas                                                 |
+| Cantidad de mesas    | Entre 1 y 3 mesas                                 | Más de 3 mesas                                          |
+| Mesas repetidas      | Todas las mesas tienen identificadores diferentes | Una misma mesa aparece más de una vez                   |
+| Cantidad de personas | Mayor que 0 y dentro de la capacidad total        | 0 o menos, o supera la capacidad total                  |
+| Horario              | El término es posterior al inicio                 | El término es igual o anterior al inicio                |
+| Disponibilidad       | Las mesas no tienen otra reserva que se solape    | Existe una reserva que se solapa en alguna de las mesas |
+| Anticipación mínima  | 60 minutos o más                                  | Menos de 60 minutos                                     |
+| Anticipación máxima  | Hasta 30 días                                     | Más de 30 días                                          |
 
-| Tiene al menos una mesa                              | Sí | No |
-| Tiene como máximo 3 mesas                            | Sí | No |
-| Las mesas son únicas                                 | Sí | No |
-| Personas mayores que cero                            | Sí | No |
-| Capacidad suficiente                                 | Sí | No |
-| Término posterior al inicio                          | Sí | No |
-| Anticipación entre 60 minutos y 30 días              | Sí | No |
-| No existe solapamiento                               | Sí | No |
-| Resultado                               | Crear `Reserva` | Lanzar `ValueError`     |
+### Resultado de la decisión
 
-Las pruebas actuales comprueban principalmente cada condición de forma aislada. No existe una prueba automatizada para cada combinación posible de condiciones inválidas; esas combinaciones se consideran descartadas por su costo combinatorio y porque la función debe rechazar la reserva cuando falla cualquiera de las condiciones.
+| Situación                          | Resultado                                                           |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| Todas las condiciones son válidas  | Se crea la reserva correctamente.                                   |
+| Al menos una condición es inválida | Se rechaza la reserva y se informa el motivo mediante `ValueError`. |
+
+Esta tabla no representa todas las combinaciones posibles entre las condiciones. Su objetivo es identificar las condiciones principales de aceptación y rechazo y relacionarlas con las reglas de negocio y los casos de prueba automatizados.
+
 
 ## 5. Trazabilidad de la API
 

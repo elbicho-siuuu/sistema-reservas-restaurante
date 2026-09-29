@@ -42,33 +42,17 @@ Las pruebas E2E verifican un flujo completo de uso de la API mediante Playwright
 
 ## 4. Riesgos de prueba
 
-Durante la ejecución de las pruebas se consideran los siguientes riesgos que podrían afectar la confiabilidad de los resultados.
+Durante la ejecución de las pruebas se consideran los siguientes riesgos que podrían afectar la confiabilidad de los resultados:
 
-### 4.1 Dependencia de fecha y hora
+| Riesgo                             | Posible efecto                                                                                                     | Medida de control                                                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Dependencia de fecha y hora actual | Una pequeña diferencia de tiempo puede afectar las pruebas de los límites de anticipación de 60 minutos y 30 días. | Las pruebas utilizan fechas calculadas explícitamente para comprobar los valores límite.                                   |
+| Estado compartido entre pruebas    | Una reserva creada por una prueba podría afectar el resultado de otra.                                             | Se limpia la lista `RESERVAS` antes de cada prueba de integración.                                                         |
+| Fallo al iniciar Uvicorn           | Las pruebas E2E podrían fallar sin que exista un error en la lógica de la aplicación.                              | El fixture de Playwright inicia Uvicorn automáticamente y verifica que la API esté disponible antes de ejecutar la prueba. |
+| Puerto ocupado                     | Otro proceso podría impedir que Uvicorn utilice un puerto determinado.                                             | La prueba E2E obtiene automáticamente un puerto disponible antes de iniciar el servidor.                                   |
 
-Las reglas de anticipación dependen de la fecha y hora actual. Una pequeña diferencia de tiempo podría afectar las pruebas de los límites de 60 minutos y 30 días.
+Estos controles buscan reducir la posibilidad de falsos resultados y hacer que las pruebas sean reproducibles y estables.
 
-**Medida de control:** las pruebas utilizan fechas calculadas explícitamente para comprobar los valores límite.
-
-### 4.2 Estado compartido entre pruebas
-
-Las reservas se almacenan temporalmente en la lista `RESERVAS`. Una prueba podría dejar datos que afecten el resultado de otra.
-
-**Medida de control:** se limpia la lista `RESERVAS` antes de cada prueba de integración.
-
-### 4.3 Fallo al iniciar Uvicorn
-
-Las pruebas E2E necesitan que Uvicorn esté funcionando. Si el servidor no inicia correctamente, la prueba podría fallar aunque la lógica de la aplicación sea correcta.
-
-**Medida de control:** el fixture de Playwright inicia Uvicorn automáticamente y verifica que la API esté disponible antes de ejecutar la prueba.
-
-### 4.4 Puerto ocupado
-
-Otro proceso podría estar utilizando el puerto necesario para iniciar Uvicorn.
-
-**Medida de control:** la prueba E2E obtiene automáticamente un puerto disponible antes de iniciar el servidor.
-
-Estos controles buscan reducir la posibilidad de falsos resultados y hacer que las pruebas sean más estables y reproducibles.
 
 
 ## 5. Criterios de entrada y salida
