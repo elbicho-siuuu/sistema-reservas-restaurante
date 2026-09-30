@@ -124,3 +124,31 @@ En total, el proyecto cuenta con 37 pruebas automatizadas. Las pruebas no funcio
 **Conclusión: No se logró identificar ni reproducir un caso real donde las pruebas automatizadas pasen pero el sistema incumpla una regla de negocio.**
 
 Las validaciones implementadas son coherentes con las reglas de negocio y las pruebas cubren adecuadamente los casos límite. No existe un hallazgo de validación que reportar en este ciclo de auditoría.
+
+## 6. Verificación de detección por niveles
+
+Se realizaron experimentos temporales para comprobar que los distintos niveles de pruebas son capaces de detectar defectos en los recorridos que verifican. Cada defecto se revirtió inmediatamente después de comprobar la detección.
+
+### 6.1 Pruebas unitarias
+
+- **Regla alterada:** máximo de 3 mesas por reserva.
+- **Defecto introducido:** se cambió temporalmente la condición `len(mesas) > MAXIMO_MESAS` por `len(mesas) >= MAXIMO_MESAS`, haciendo que una reserva válida con exactamente 3 mesas fuera rechazada.
+- **Prueba que lo detectó:** `test_acepta_una_reserva_con_hasta_tres_mesas` en `tests/test_reservas.py`.
+- **Resultado:** 1 prueba falló y 17 pasaron.
+- **Reversión:** la condición fue restaurada a `len(mesas) > MAXIMO_MESAS`; después, las 18 pruebas unitarias volvieron a pasar.
+
+### 6.2 Pruebas de integración
+
+- **Comportamiento alterado:** código HTTP de `POST /reservas`.
+- **Defecto introducido:** se cambió temporalmente el código de respuesta de creación de HTTP 201 a HTTP 200.
+- **Prueba que lo detectó:** `test_post_reservas_crea_una_reserva_valida` en `tests/test_api.py`, utilizando `TestClient`.
+- **Resultado:** 1 prueba falló y 3 pasaron porque la prueba esperaba HTTP 201 y recibió HTTP 200.
+- **Reversión:** el endpoint fue restaurado a HTTP 201; después, las 4 pruebas de integración volvieron a pasar.
+
+### 6.3 Pruebas E2E
+
+- **Comportamiento alterado:** consulta de las reservas después de crear una reserva mediante el flujo HTTP completo.
+- **Defecto introducido:** `GET /reservas` fue modificado temporalmente para devolver una lista vacía, aunque la reserva sí se hubiera creado.
+- **Prueba que lo detectó:** `test_flujo_completo_reserva` en `tests/e2e/test_reservas_e2e.py`, utilizando Playwright y Uvicorn.
+- **Resultado:** 1 prueba falló porque la reserva `E2E-R1` no apareció en la respuesta de `GET /reservas`.
+- **Reversión:** el endpoint fue restaurado para devolver las reservas almacenadas; después, la prueba E2E volvió a pasar.
