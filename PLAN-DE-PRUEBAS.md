@@ -13,19 +13,20 @@ El alcance de este plan de pruebas comprende las funcionalidades implementadas e
 Se incluye:
 
 La lógica de negocio relacionada con la creación de reservas y sus reglas de validación.
-La API FastAPI, incluyendo las operaciones para consultar mesas, crear reservas y consultar las reservas existentes.
+La API FastAPI, incluyendo las operaciones para consultar el catálogo de mesas, crear reservas, consultar las reservas existentes y solicitar la supresión de una reserva.
 Las pruebas unitarias de las reglas de negocio mediante pytest.
-Las pruebas de integración de los endpoints de la API mediante TestClient.
+Las pruebas de integración de los endpoints de la API mediante `TestClient` contra `app`.
 Las pruebas E2E mediante Playwright, verificando un flujo completo de uso de la API.
+Las pruebas no funcionales de rendimiento, seguridad y privacidad/protección de datos, documentadas en `NO-FUNCIONALES.md`.
 
-Quedan fuera del alcance las funcionalidades que no forman parte de la implementación actual, como base de datos, autenticación, cancelación de reservas y una interfaz gráfica.
+Quedan fuera del alcance las funcionalidades que no forman parte de la implementación actual, como base de datos, autenticación, cancelación de reservas como operación de negocio y una interfaz gráfica.
 
 
 ## 3. Estrategia de pruebas
 
 Como referencia para organizar el proceso de pruebas se utiliza ISO/IEC/IEEE 29119, especialmente para ordenar el alcance, los niveles de prueba, los criterios y la trazabilidad. Esto no implica una certificación formal del proyecto.
 
-Se utilizarán tres niveles de pruebas para verificar el funcionamiento del sistema desde distintos puntos de vista: pruebas unitarias, pruebas de integración y pruebas E2E.
+Se utilizarán tres niveles de pruebas funcionales para verificar el funcionamiento del sistema desde distintos puntos de vista: pruebas unitarias, pruebas de integración y pruebas E2E. Como categoría complementaria se ejecutan pruebas no funcionales de rendimiento, seguridad y privacidad/protección de datos.
 
 ### 3.1 Pruebas unitarias
 
@@ -37,7 +38,11 @@ Las pruebas de integración verifican que los componentes de la API FastAPI func
 
 ### 3.3 Pruebas E2E
 
-Las pruebas E2E verifican un flujo completo de uso de la API mediante Playwright. El flujo consulta las mesas disponibles, crea una reserva y posteriormente consulta las reservas para comprobar que la reserva creada está disponible.
+Las pruebas E2E verifican un flujo completo de uso de la API mediante Playwright. El flujo consulta el catálogo de mesas, crea una reserva y posteriormente consulta las reservas para comprobar que la reserva creada aparece en la respuesta.
+
+### 3.4 Pruebas no funcionales
+
+Las pruebas no funcionales son una categoría complementaria a los niveles funcionales. Comprueban rendimiento, seguridad y privacidad/protección de datos, incluyendo el endpoint `DELETE /reservas/{identificador}` para demostrar técnicamente el derecho de supresión. Sus criterios, pruebas y resultados están documentados en `NO-FUNCIONALES.md`.
 
 
 ## 4. Riesgos de prueba
@@ -73,6 +78,7 @@ La etapa de pruebas se considerará completada cuando:
 * Las pruebas unitarias se ejecuten correctamente.
 * Las pruebas de integración de la API se ejecuten correctamente.
 * La prueba E2E se ejecute correctamente mediante Playwright.
+  * Las pruebas no funcionales se ejecuten correctamente y sus resultados queden documentados en `NO-FUNCIONALES.md`.
 * Los errores encontrados durante las pruebas hayan sido corregidos o queden documentados.
 * Los resultados obtenidos sean coherentes con los casos de prueba diseñados.
 

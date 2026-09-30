@@ -136,6 +136,8 @@ Las pruebas de `test_api.py` llaman directamente a los handlers; no realizan pet
 
 El fixture E2E inicia Uvicorn, espera a que la API responda y utiliza Playwright `APIRequestContext` para realizar las peticiones HTTP reales.
 
+Los casos no funcionales de rendimiento, seguridad y privacidad/protección de datos están definidos y evidenciados en `NO-FUNCIONALES.md`. Ese documento contiene sus criterios previos, pruebas automatizadas, resultados y limitaciones.
+
 ## 7. Casos sin diseño específico
 
 Las pruebas de `tests/test_modelos.py` verifican que las dataclasses conserven sus datos básicos. No representan un Diseño de Uso ni una regla de negocio, por lo que no se les asigna un caso de este documento.

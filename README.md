@@ -31,13 +31,16 @@ python --version
 Sincroniza el entorno del proyecto e instala las dependencias de desarrollo:
 
 ```powershell
-uv sync
+uv sync --dev
 ```
 
 ### Comandos de Verificación de Calidad
-* **Análisis Estático:** `uv run ruff check`
-* **Verificación de Tipos:** `uv run pyrefly`
-* **Suite de Pruebas:** `uv run pytest`
+* **Verificación de Tipos:** `uv run pyrefly check`
+* **Análisis Estático:** `uv run ruff check .`
+* **Pruebas unitarias:** `uv run pytest tests/test_reservas.py tests/test_modelos.py`
+* **Pruebas de integración:** `uv run pytest tests/test_api.py`
+* **Pruebas no funcionales:** `uv run pytest tests/test_no_funcionales.py`
+* **Pruebas E2E:** `uv run pytest tests/e2e/`
 
 ## 📋 Catálogo de Reglas de Negocio
 

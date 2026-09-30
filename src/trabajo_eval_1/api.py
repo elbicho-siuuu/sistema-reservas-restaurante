@@ -1,5 +1,6 @@
 """API HTTP para el sistema de reservas de restaurante."""
 
+import secrets
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, HTTPException
@@ -16,6 +17,7 @@ CATALOGO_MESAS: list[Mesa] = [
     Mesa("M3", 2, UbicacionMesa.SEMI_EXTERIOR),
 ]
 RESERVAS: list[Reserva] = []
+TOKENS_GESTION: dict[str, str] = {}
 
 
 class MesaResponse(BaseModel):
@@ -44,6 +46,10 @@ class ReservaResponse(BaseModel):
     termino: datetime
 
 
+class ReservaCreadaResponse(ReservaResponse):
+    token_gestion: str
+
+
 def _mesa_response(mesa: Mesa) -> MesaResponse:
     return MesaResponse(
         identificador=mesa.identificador,
@@ -70,8 +76,8 @@ def listar_mesas() -> list[MesaResponse]:
     return [_mesa_response(mesa) for mesa in CATALOGO_MESAS]
 
 
-@app.post("/reservas", response_model=ReservaResponse, status_code=201)
-def crear_reserva_api(datos: ReservaCreateRequest) -> ReservaResponse:
+@app.post("/reservas", response_model=ReservaCreadaResponse, status_code=201)
+def crear_reserva_api(datos: ReservaCreateRequest) -> ReservaCreadaResponse:
     """Crea una reserva utilizando las reglas del dominio."""
     mesas_por_id = {mesa.identificador: mesa for mesa in CATALOGO_MESAS}
     mesas: list[Mesa] = []
@@ -102,11 +108,34 @@ def crear_reserva_api(datos: ReservaCreateRequest) -> ReservaResponse:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
     RESERVAS.append(reserva)
-    return _reserva_response(reserva)
+    token_gestion = secrets.token_urlsafe(32)
+    TOKENS_GESTION[reserva.identificador] = token_gestion
+    return ReservaCreadaResponse(
+        **_reserva_response(reserva).model_dump(),
+        token_gestion=token_gestion,
+    )
 
 
 @app.get("/reservas", response_model=list[ReservaResponse])
 def listar_reservas() -> list[ReservaResponse]:
     """Devuelve las reservas creadas durante la ejecución de la aplicación."""
     return [_reserva_response(reserva) for reserva in RESERVAS]
+
+
+@app.delete("/reservas/{identificador}", status_code=204)
+def eliminar_reserva(identificador: str, token_gestion: str) -> None:
+    """Elimina una reserva cuando se presenta su token de gestión."""
+    reserva = next(
+        (reserva for reserva in RESERVAS if reserva.identificador == identificador),
+        None,
+    )
+    if reserva is None:
+        raise HTTPException(status_code=404, detail="La reserva no existe.")
+
+    token_esperado = TOKENS_GESTION.get(identificador, "")
+    if not secrets.compare_digest(token_esperado, token_gestion):
+        raise HTTPException(status_code=403, detail="Token de gestión inválido.")
+
+    RESERVAS.remove(reserva)
+    TOKENS_GESTION.pop(identificador, None)
 

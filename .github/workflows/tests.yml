@@ -37,5 +37,8 @@ jobs:
       - name: Pruebas de integración
         run: uv run pytest tests/test_api.py
 
+      - name: Pruebas no funcionales
+        run: uv run pytest tests/test_no_funcionales.py
+
       - name: Pruebas E2E
         run: uv run pytest tests/e2e/

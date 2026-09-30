@@ -1,19 +1,18 @@
 from datetime import UTC, datetime, timedelta
 
-import pytest
-from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
 from trabajo_eval_1.api import (
     RESERVAS,
+    TOKENS_GESTION,
     ReservaCreateRequest,
-    crear_reserva_api,
-    listar_mesas,
-    listar_reservas,
+    app,
 )
 
 
 def setup_function() -> None:
     RESERVAS.clear()
+    TOKENS_GESTION.clear()
 
 
 def datos_reserva(mesa_ids: list[str] | None = None) -> ReservaCreateRequest:
@@ -30,34 +29,56 @@ def datos_reserva(mesa_ids: list[str] | None = None) -> ReservaCreateRequest:
     )
 
 
-def test_get_mesas_devuelve_el_catalogo() -> None:
-    mesas = listar_mesas()
+def payload_reserva(datos: ReservaCreateRequest) -> dict[str, object]:
+    return datos.model_dump(mode="json")
 
-    assert {mesa.identificador for mesa in mesas} == {"M1", "M2", "M3"}
+
+def test_get_mesas_devuelve_el_catalogo() -> None:
+    client = TestClient(app)
+    respuesta = client.get("/mesas")
+
+    assert respuesta.status_code == 200
+    assert {mesa["identificador"] for mesa in respuesta.json()} == {
+        "M1",
+        "M2",
+        "M3",
+    }
 
 
 def test_post_reservas_crea_una_reserva_valida() -> None:
-    reserva = crear_reserva_api(datos_reserva(["M1", "M2"]))
+    client = TestClient(app)
+    respuesta = client.post(
+        "/reservas",
+        json=payload_reserva(datos_reserva(["M1", "M2"])),
+    )
+    reserva = respuesta.json()
 
-    assert reserva.identificador == "R1"
-    assert reserva.cantidad_personas == 2
+    assert respuesta.status_code == 201
+    assert reserva["identificador"] == "R1"
+    assert reserva["cantidad_personas"] == 2
 
 
 def test_post_reservas_rechaza_mesa_inexistente_sin_modificar_reservas() -> None:
-    crear_reserva_api(datos_reserva())
+    client = TestClient(app)
+    client.post("/reservas", json=payload_reserva(datos_reserva()))
     reservas_antes = list(RESERVAS)
 
-    with pytest.raises(HTTPException) as error:
-        crear_reserva_api(datos_reserva(["M99"]))
+    respuesta = client.post(
+        "/reservas",
+        json=payload_reserva(datos_reserva(["M99"])),
+    )
 
-    assert error.value.status_code == 404
+    assert respuesta.status_code == 404
     assert RESERVAS == reservas_antes
 
 
 def test_get_reservas_devuelve_las_reservas_creadas() -> None:
-    crear_reserva_api(datos_reserva())
+    client = TestClient(app)
+    client.post("/reservas", json=payload_reserva(datos_reserva()))
 
-    reservas = listar_reservas()
+    respuesta = client.get("/reservas")
+    reservas = respuesta.json()
 
+    assert respuesta.status_code == 200
     assert len(reservas) == 1
-    assert reservas[0].identificador == "R1"
+    assert reservas[0]["identificador"] == "R1"

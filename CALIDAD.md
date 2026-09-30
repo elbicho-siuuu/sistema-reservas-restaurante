@@ -17,7 +17,7 @@
 | Impedir reservas solapadas para una misma mesa. | Los intervalos se solapan cuando `inicio_nueva < termino_existente` y `termino_nueva > inicio_existente`; comenzar exactamente al terminar es válido. | Pruebas unitarias: `test_rechaza_solapamiento_en_la_misma_mesa` y `test_acepta_reserva_que_comienza_al_terminar_la_anterior` en `tests/test_reservas.py`. Resultado: pruebas aprobadas. |  |
 | Exigir al menos 60 minutos de anticipación. | Una reserva con 59 minutos se rechaza y una con exactamente 60 minutos se acepta. | Pruebas unitarias: `test_rechaza_reserva_con_menos_de_60_minutos_de_anticipacion` y `test_acepta_reserva_con_exactamente_60_minutos_de_anticipacion` en `tests/test_reservas.py`. Resultado: pruebas aprobadas. |  |
 | Limitar la anticipación máxima a 30 días. | Una reserva con 29 días o exactamente 30 días se acepta; una con 30 días y una unidad de tiempo adicional se rechaza. | Pruebas unitarias: `test_acepta_reserva_con_menos_de_30_dias_de_anticipacion`, `test_acepta_reserva_con_exactamente_30_dias_de_anticipacion` y `test_rechaza_reserva_con_mas_de_30_dias_de_anticipacion` en `tests/test_reservas.py`. Resultado: pruebas aprobadas. |  |
-| Mantener la calidad técnica del código. | El código debe superar las comprobaciones automatizadas de estilo y análisis estático. | `ruff`: sin errores. `pyrefly`: 0 errores. Pruebas unitarias: 16 pruebas en `test_reservas.py`. Pruebas de integración: 4 pruebas en `test_api.py` y 4 pruebas en `test_modelos.py`. Prueba E2E: 1 prueba en `tests/e2e/test_reservas_e2e.py`. |  |
+| Mantener la calidad técnica del código. | El código debe superar las comprobaciones automatizadas de estilo y análisis estático. | `ruff`: sin errores. `pyrefly`: 0 errores. Pruebas unitarias: 18 pruebas en `tests/test_reservas.py`. Pruebas de integración: 4 pruebas en `tests/test_api.py` y 4 pruebas en `tests/test_modelos.py`. Pruebas no funcionales: 10 pruebas en `tests/test_no_funcionales.py`, sobre rendimiento, seguridad y privacidad/protección de datos, documentadas en `NO-FUNCIONALES.md`. Prueba E2E: 1 prueba en `tests/e2e/test_reservas_e2e.py`. Total: 37 pruebas. |  |
 
 Las evidencias de validación se mantienen vacías porque todavía no se ha registrado una validación manual o una demostración con usuarios. Las pruebas automatizadas corresponden a evidencia de verificación.
 
@@ -113,10 +113,13 @@ Durante la auditoría del estado actual del proyecto se realizó una investigaci
 
 Se revisaron:
 - La lógica de validación en `src/trabajo_eval_1/reservas.py`
-- Las pruebas unitarias en `tests/test_reservas.py` (16 pruebas)
+- Las pruebas unitarias en `tests/test_reservas.py` (18 pruebas)
 - Las pruebas de integración en `tests/test_api.py` (4 pruebas)
 - Las pruebas de modelos en `tests/test_modelos.py` (4 pruebas)
+- Las pruebas no funcionales en `tests/test_no_funcionales.py` (10 pruebas)
 - La prueba E2E en `tests/e2e/test_reservas_e2e.py` (1 prueba)
+
+En total, el proyecto cuenta con 37 pruebas automatizadas. Las pruebas no funcionales cubren rendimiento, seguridad y privacidad/protección de datos y están documentadas en `NO-FUNCIONALES.md`.
 
 **Conclusión: No se logró identificar ni reproducir un caso real donde las pruebas automatizadas pasen pero el sistema incumpla una regla de negocio.**
 
