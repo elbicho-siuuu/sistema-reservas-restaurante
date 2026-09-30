@@ -14,7 +14,7 @@ def validar_anticipacion(inicio: datetime, ahora: datetime) -> None:
     """Valida los limites minimo y maximo de anticipacion."""
     anticipacion = inicio - ahora
 
-    if anticipacion < ANTICIPACION_MINIMA:
+    if anticipacion <= ANTICIPACION_MINIMA:
         raise ValueError(
             "La reserva debe realizarse con al menos 60 minutos de anticipacion."
         )
